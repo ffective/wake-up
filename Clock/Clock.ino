@@ -1,24 +1,19 @@
 #include <Arduino.h>
-#include <U8x8lib.h>
-//#include <RTCZero.h>
 
+//Display stuff
+#include <U8x8lib.h>
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
 #endif
+U8X8_SH1106_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
+
+
+//Own code
+#include "Time.h"
 
 #define X 128
 #define Y 64
 
-U8X8_SH1106_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
-
-// Clock
-#define YEAR 0
-#define MONTH YEAR+1
-#define DAY MONTH+1
-#define HOUR DAY+1
-#define MINUTE HOUR+1
-#define SECOND MINUTE+1
-byte clk[6] = {90, 11, 19, 5, 5, 45};
 
 // Alarm
 #define MONDAY 0
@@ -46,6 +41,8 @@ Alarm_entry alm[ALM_ENTRIES] = { // Allow a different alarm for each day, and di
   { 11, 12, false },//sat
   { 13, 14, true }//sun
 };
+
+Time clk;
 
 void setup(void)
 {
@@ -197,50 +194,20 @@ void print_2digit(byte number) {
   u8x8.print(text);
 }
 
-// Update all date and time values
-void update_time(byte datetime[], int len, int section = SECOND) {
-
-  // Stop if we are past the Second position
-  if (section < 0 || section >= len) { return; }
-
-  datetime[section] = get_rtc(section);
-
-  if (datetime[section] == 0) {
-    update_time(datetime, len, section - 1);
-  }
-}
-
-
-// Get the relevant information from the RTC
-// Temporarily accessing global clk to test until MKRZero arrives.
-// TODO - switch to commented-out statemens
-byte get_rtc(int section) {
-  switch (section) {
-    case YEAR:   return (clk[section] + 1) % 99; //return rtc.getYear();
-    case MONTH:  return (clk[section] + 1) % 13; //return rtc.getMonth();
-    case DAY:    return (clk[section] + 1) % 32; //return rtc.getDay();
-    case HOUR:   return (clk[section] + 1) % 24; //return rtc.getHours();
-    case MINUTE: return (clk[section] + 1) % 60; //return rtc.getMinutes();
-    case SECOND: return (clk[section] + 1) % 60; //return rtc.getSeconds();
-    default:     return 99;
-  }
-}
-
 void loop(void)
 {
   //u8x8.clearDisplay();
 
   //u8x8.setPowerSave(0);
 
-  update_time(clk, sizeof(clk));
+  clk.update_time();
 
-  
   // Alarm indication
-  print_alarm(alm, clk);
+  print_alarm(alm, clk.datetime);
   
   // Main clock
-  print_clock(clk);
-  print_date(clk);
+  print_clock(clk.datetime);
+  print_date(clk.datetime);
 
   delay(300);
 }
