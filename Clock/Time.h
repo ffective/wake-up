@@ -22,6 +22,8 @@ class Time {
 
   public:
     DateTime datetime;
+    static int dtcmp(DateTime first, DateTime last);
+    static byte get_dow(DateTime datetime);
     void update_time(bool force = false, int section = DT_SECOND);
     Time();
 

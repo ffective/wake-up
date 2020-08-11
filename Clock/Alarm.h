@@ -2,6 +2,7 @@
 #define _ALARM_H_GUARD_20200810_
 
 #include <Arduino.h>
+#include "Time.h"
 
 //Debug and development
 #define _DEBUG_POPULATE_ALARM_LIST // Create some entries to test the alarm functionality.
@@ -31,6 +32,7 @@ class Alarm {
   public:
     Alarm_list alarms;
     Alarm();
+    byte next_alarm(DateTime dt);
 
   private:
 };

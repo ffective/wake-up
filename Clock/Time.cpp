@@ -50,3 +50,31 @@ void Time::update_time(bool force, int section) {
     this->update_time(force, section - 1);
   }
 }
+
+// Compares two datetimes.
+// returns 1 if the first is later than the last
+// returns 0 if they're equal
+// returns -1 if the last is later than the first
+int Time::dtcmp(DateTime first, DateTime last) {
+  int ret = 0;
+  for (int i=0; i<DT_SECOND+1; i++) {
+    if (first[i] > last[i]) return 1;
+    if (first[i] != last[i]) ret = -1;
+  }
+  return ret;
+}
+
+// Calculate day of week
+byte Time::get_dow(DateTime datetime) {
+  byte month = datetime[DT_MONTH];
+  byte year  = datetime[DT_YEAR];
+  return (datetime[DT_DAY]
+        + ((153 * (month + 12 * ((14 - month) / 12) - 3) + 2) / 5)
+        + (365 * (year + 4800 - ((14 - month) / 12)))
+        + ((year + 4800 - ((14 - month) / 12)) / 4)
+        - ((year + 4800 - ((14 - month) / 12)) / 100)
+        + ((year + 4800 - ((14 - month) / 12)) / 400)
+        - 32045
+      ) % 7;
+
+}

@@ -27,20 +27,6 @@ void setup(void)
   //rtc.begin();
 }
 
-// Calculate day of week
-byte get_dow(byte* datetime) {
-  byte month = datetime[DT_MONTH];
-  byte year  = datetime[DT_YEAR];
-  return (datetime[DT_DAY]
-        + ((153 * (month + 12 * ((14 - month) / 12) - 3) + 2) / 5)
-        + (365 * (year + 4800 - ((14 - month) / 12)))
-        + ((year + 4800 - ((14 - month) / 12)) / 4)
-        - ((year + 4800 - ((14 - month) / 12)) / 100)
-        + ((year + 4800 - ((14 - month) / 12)) / 400)
-        - 32045
-      ) % 7;
-
-}
 
 // Fill a buffer with a three-character string representing the DoW
 const char* dow_str(int dow) {
@@ -68,47 +54,13 @@ void print_date(byte* datetime) {
 
   //Print Day of Week
   u8x8.setCursor(0,7);
-  u8x8.print(dow_str(get_dow(datetime)));
+  u8x8.print(dow_str(Time::get_dow(datetime)));
 
   // Print date string
   char date_str[8];
   sprintf(date_str, "%02d/%02d/%02d", datetime[DT_DAY],
           datetime[DT_MONTH], datetime[DT_YEAR]);
   u8x8.drawString(8, 7, date_str);
-}
-
-// Compares two datetimes.
-// returns 1 if the first is later than the last
-// returns 0 if they're equal
-// returns -1 if the last is later than the first
-int dtcmp(byte* first, byte* last) {
-  int ret = 0;
-  for (int i=0; i<DT_SECOND+1; i++) {
-    if (first[i] > last[i]) return 1;
-    if (first[i] != last[i]) ret = -1;
-  }
-  return ret;
-}
-
-// Returns the index of the next enabled alarm.
-// Returns -1 (underflow) if there is no next enabled alarm.
-byte next_alarm(Alarm_entry* alarms, byte* dt) {
-  byte dow = get_dow(dt);
-  byte index = dow;
-  byte i = 0;
-  for (i; i<ALM_ENTRIES; i++) {
-    index = i + dow % ALM_ENTRIES;
-
-    // Only looking for enabled alarms
-    if (! alarms[index].enabled) continue;
-
-    //https://arduino.stackexchange.com/questions/44585/what-is-causing-this-narrowing-conversion-warning
-    byte alarmdt[] = {dt[DT_YEAR], dt[DT_MONTH], (byte)(dt[DT_DAY] + i),
-                      alarms[index].hour, alarms[index].minute, 0};
-    if (dtcmp(alarmdt, dt) >= 0) break;
-  }
-  if (i == 8) return -1; // underflow on "error"
-  return index;
 }
 
 // Prints the top line with alarm information.
@@ -118,7 +70,7 @@ void print_alarm(Alarm_entry* alarms, byte* datetime) {
   u8x8.drawGlyph(0, 0, '@'+1);
 
   // Get index of next alarm
-  byte index = next_alarm(alarms, datetime);
+  byte index = alm.next_alarm(datetime);
   // Draw alarm time
   u8x8.setFont(u8x8_font_saikyosansbold8_u);
   if (index < ALM_ENTRIES) {
