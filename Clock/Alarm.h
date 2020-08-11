@@ -7,17 +7,14 @@
 //Debug and development
 #define _DEBUG_POPULATE_ALARM_LIST // Create some entries to test the alarm functionality.
 
-#define ALM_MONDAY 0
-#define ALM_TUESDAY ALM_MONDAY+1
-#define ALM_WEDNESDAY ALM_TUESDAY+1
-#define ALM_THURSDAY ALM_WEDNESDAY+1
-#define ALM_FRIDAY ALM_THURSDAY+1
-#define ALM_SATURDAY ALM_FRIDAY+1
-#define ALM_SUNDAY ALM_SATURDAY+1
-#define ALM_ENTRIES 7
-#define ALM_HOUR 0
-#define ALM_MINUTE ALM_HOUR+1
-#define ALM_STATE ALM_MINUTE+1
+#define ALM_MONDAY    0
+#define ALM_TUESDAY   1
+#define ALM_WEDNESDAY 2
+#define ALM_THURSDAY  3
+#define ALM_FRIDAY    4
+#define ALM_SATURDAY  5
+#define ALM_SUNDAY    6
+#define ALM_ENTRIES   7
 
 typedef struct {
   byte hour;

@@ -5,16 +5,18 @@
 #include <RTCZero.h>
 
 //Debug and development
-#define _DEBUG_MOCK_RTC // Use this to run this with mocked values for time. The clock will increment as fast as the main loop hits update.
+#define _DEBUG_MOCK_RTC /* Use this to run this with mocked values for time.
+                           The clock will increment as fast as the main loop
+                           hits update. */
 
 // Clock
-#define DT_YEAR 0
-#define DT_MONTH DT_YEAR+1
-#define DT_DAY DT_MONTH+1
-#define DT_HOUR DT_DAY+1
-#define DT_MINUTE DT_HOUR+1
-#define DT_SECOND DT_MINUTE+1
-#define DT_SECTIONS DT_SECOND+1
+#define DT_YEAR     0
+#define DT_MONTH    1
+#define DT_DAY      2
+#define DT_HOUR     3
+#define DT_MINUTE   4
+#define DT_SECOND   5
+#define DT_SECTIONS 6
 
 typedef byte DateTime[DT_SECTIONS];
 
