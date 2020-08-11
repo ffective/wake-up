@@ -10,39 +10,13 @@ U8X8_SH1106_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
 
 //Own code
 #include "Time.h"
+#include "Alarm.h"
 
 #define X 128
 #define Y 64
 
-
-// Alarm
-#define MONDAY 0
-#define TUESDAY MONDAY+1
-#define WEDNESDAY TUESDAY+1
-#define THURSDAY WEDNESDAY+1
-#define FRIDAY THURSDAY+1
-#define SATURDAY FRIDAY+1
-#define SUNDAY SATURDAY+1
-#define ALM_HOUR 0
-#define ALM_MINUTE ALM_HOUR+1
-#define ALM_STATE ALM_MINUTE+1
-#define ALM_ENTRIES 7
-typedef struct {
-  byte hour;
-  byte minute;
-  bool enabled;
-} Alarm_entry;
-Alarm_entry alm[ALM_ENTRIES] = { // Allow a different alarm for each day, and disabling it independently.
-  { 1,  2,  true },//mon
-  { 3,  4,  false },//tue
-  { 5,  6,  true },//wed
-  { 7,  8,  false },//thu
-  { 9,  10, true },//fri
-  { 11, 12, false },//sat
-  { 13, 14, true }//sun
-};
-
 Time clk;
+Alarm alm;
 
 void setup(void)
 {
@@ -55,9 +29,9 @@ void setup(void)
 
 // Calculate day of week
 byte get_dow(byte* datetime) {
-  byte month = datetime[MONTH];
-  byte year  = datetime[YEAR];
-  return (datetime[DAY]
+  byte month = datetime[DT_MONTH];
+  byte year  = datetime[DT_YEAR];
+  return (datetime[DT_DAY]
         + ((153 * (month + 12 * ((14 - month) / 12) - 3) + 2) / 5)
         + (365 * (year + 4800 - ((14 - month) / 12)))
         + ((year + 4800 - ((14 - month) / 12)) / 4)
@@ -76,16 +50,16 @@ const char* dow_str(int dow) {
 // Prints the main clock section of the display
 void print_clock(byte* datetime) {
   u8x8.setFont(u8x8_font_profont29_2x3_n);
-  
+
   u8x8.setCursor(0, 3);
-  print_2digit(datetime[HOUR]);
+  print_2digit(datetime[DT_HOUR]);
   u8x8.print(":");
   //TODO - make this easily selectable.
   //u8x8.setInverseFont(1);
-  print_2digit(datetime[MINUTE]);
+  print_2digit(datetime[DT_MINUTE]);
   //u8x8.setInverseFont(0);
   u8x8.print(":");
-  print_2digit(datetime[SECOND]);
+  print_2digit(datetime[DT_SECOND]);
 }
 
 // Prints the date section of the display
@@ -98,8 +72,8 @@ void print_date(byte* datetime) {
 
   // Print date string
   char date_str[8];
-  sprintf(date_str, "%02d/%02d/%02d", datetime[DAY],
-          datetime[MONTH], datetime[YEAR]);
+  sprintf(date_str, "%02d/%02d/%02d", datetime[DT_DAY],
+          datetime[DT_MONTH], datetime[DT_YEAR]);
   u8x8.drawString(8, 7, date_str);
 }
 
@@ -109,7 +83,7 @@ void print_date(byte* datetime) {
 // returns -1 if the last is later than the first
 int dtcmp(byte* first, byte* last) {
   int ret = 0;
-  for (int i=0; i<SECOND+1; i++) {
+  for (int i=0; i<DT_SECOND+1; i++) {
     if (first[i] > last[i]) return 1;
     if (first[i] != last[i]) ret = -1;
   }
@@ -129,7 +103,7 @@ byte next_alarm(Alarm_entry* alarms, byte* dt) {
     if (! alarms[index].enabled) continue;
 
     //https://arduino.stackexchange.com/questions/44585/what-is-causing-this-narrowing-conversion-warning
-    byte alarmdt[] = {dt[YEAR], dt[MONTH], (byte)(dt[DAY] + i),
+    byte alarmdt[] = {dt[DT_YEAR], dt[DT_MONTH], (byte)(dt[DT_DAY] + i),
                       alarms[index].hour, alarms[index].minute, 0};
     if (dtcmp(alarmdt, dt) >= 0) break;
   }
@@ -170,7 +144,7 @@ void print_alarm(Alarm_entry* alarms, byte* datetime) {
 
     //Draw alarm day representation
     u8x8.setCursor(9+i,1);
-    if (i == index) { 
+    if (i == index) {
       u8x8.print("^");
     }
     else {
@@ -203,8 +177,8 @@ void loop(void)
   clk.update_time();
 
   // Alarm indication
-  print_alarm(alm, clk.datetime);
-  
+  print_alarm(alm.alarms, clk.datetime);
+
   // Main clock
   print_clock(clk.datetime);
   print_date(clk.datetime);
